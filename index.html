@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Rob's P5 Testing Playground...</title>
+</head>
+<body>
+
+  <div id='myContainer'></div>
+
+  <h3>Score</h3>
+  <div id="score">0</div>
+  <h3>Passed Fighters</h3>
+  <div id="passed_fighters">0</div>
+
+  <script src="../js/p5.min.js"></script>
+  <script src="../js/addons/p5.collision.js"></script>
+
+  <script>
+
+  var app = {
+    canvas : {
+      w : 600,
+      h : 600
+    },
+    defaults : {
+      dotWidth : 16
+    }
+  };
+
+  var game = {
+    score : 0,
+    passed_fighters : 0,
+    draw_cross_bar : function(){
+      image(crossBar,
+        crossX - crossBar.width/8,
+        (crossY/2 - crossBar.height/8 + 20),
+
+        crossBar.width/4,
+        crossBar.height/4);
+    }
+  };
+
+  var keyIsDown = false;
+  var currentKey;
+
+  var keys = [];
+
+  var Player = {
+    x : 600 / 2,
+    y : 590,
+    w : 20,
+    h : 20,
+    rotation : 0,
+    moveLeft : function() {
+      // this.x -= 10;
+      if(this.rotation < 90){
+        this.rotation += 2;
+      } else {
+        this.rotation = 90;
+      }
+
+      crossX = 300 - Math.sin(this.rotation * (Math.PI/180)) * 350;
+      crossY = crossUp - Math.cos(this.rotation * (Math.PI/180)) * 50;
+
+    },
+    moveRight : function() {
+      // this.x += 10;
+
+      if(this.rotation > -90){
+        this.rotation -= 2;
+      } else {
+        this.rotation = -90;
+      }
+
+      crossX = 300 - Math.sin(this.rotation * (Math.PI/180)) * 350;
+      crossY = crossUp - Math.cos(this.rotation * (Math.PI/180)) * 50;
+
+    },
+    draw : function() {
+
+      fill(255);
+      rect(this.x, this.y, this.w, this.h);
+
+      if(keys[38]){
+        crossUp -= 10;
+        crossX = 300 - Math.sin(this.rotation * (Math.PI/180)) * 350;
+        crossY = crossUp - Math.cos(this.rotation * (Math.PI/180)) * 50;
+
+        game.draw_cross_bar();
+      }
+      if(keys[40]){
+        crossUp += 10;
+
+        crossX = 300 - Math.sin(this.rotation * (Math.PI/180)) * 350;
+        crossY = crossUp - Math.cos(this.rotation * (Math.PI/180)) * 50;
+
+        game.draw_cross_bar();
+      }
+
+
+
+      if(keys[39] ) {
+        // right
+        Player.moveRight();
+      }
+
+      if(keys[37] ) {
+        // left
+        Player.moveLeft();
+      }
+
+      if(keys[32] ) {
+
+        if(delay_count == 0){
+          addBullet(Player.x);
+        }
+
+      }
+
+      if(delay_count == delay){
+        delay_count = 0;
+      } else {
+        delay_count += 1;
+      }
+
+
+    }
+  };
+
+  var dots = [];
+  var crossBar;
+  var explosion;
+
+  var delay = 5;
+
+  var debugLine = false;
+
+  var delay_count = 0;
+
+  var xWings = [];
+
+  var intervalID;
+
+  var crossX = app.canvas.w/2;
+  var crossY = app.canvas.h/2;
+  var crossUp = 600;
+
+
+  function setup() {
+    var myCanvas = createCanvas(app.canvas.w, app.canvas.h);
+    myCanvas.parent('myContainer');
+
+    noStroke();
+
+    crossBar = loadImage("./img/crossbar.png");
+    xWing = loadImage("./img/xwing.png");
+    explosion = loadImage("./img/explosion.png");
+    gunnersview = loadImage("./img/gunnersview.png");
+
+    intervalID = window.setInterval(function(){
+      xWings.push({
+        beginX : 292,  // Initial x-coordinate
+        beginY : 283,  // Initial y-coordinate
+        endX : random(406-340, 406+200),   // Final x-coordinate
+        endY : random(258-200, 258+200),   // Final y-coordinate
+        distX : 0,          // X-axis distance to move
+        distY : 0,          // Y-axis distance to move
+
+        hasBeenHit : 0,
+
+        w : 1,
+        h : 1,
+
+        x : this.beginX,        // Current x-coordinate
+        y : this.beginY,        // Current y-coordinate
+        step : 0.05,    // Size of each step along the path
+        pct : 0.0,      // Percentage traveled (0.0 to 1.0)
+
+        display : function () {
+
+          this.pct += this.step;
+
+          this.distX = this.endX - this.beginX;
+          this.distY = this.endY - this.beginY;
+
+          if (this.pct < 1.0) {
+            this.x = this.beginX + (this.pct * this.distX);
+            this.y = this.beginY + (this.pct * this.distY);
+          }
+
+          if(this.hasBeenHit){
+            //image(crossBar,this.x, this.y, this.w, this.h);
+            image(explosion,this.x, this.y, this.w, this.h);
+          } else {
+            image(xWing,this.x, this.y, this.w, this.h);
+          }
+
+          this.w *= 1.01;
+          this.h *= 1.01;
+        }
+      });
+
+    //addBullet(Player.x);
+
+  }, 500);
+  }
+
+function draw() {
+
+  // clear screen:
+  fill(0);
+  rect(0, 0, app.canvas.w, app.canvas.h);
+
+  image(gunnersview,0,0,600,600);
+
+  // draw each bullet...
+  for(var i=0; i<dots.length; i+=1){
+    dots[i].display();
+
+    //remove old bullets...
+    if(dots[i].w < 1.5){
+      dots.splice(i,1);
+    }
+  }
+
+  for(var i=0; i<xWings.length; i+=1){
+    xWings[i].display();
+
+    if(xWings[i].w > app.canvas.w){
+      xWings.splice(i,1);
+      game.passed_fighters += 1;
+      document.getElementById('passed_fighters').innerHTML = game.passed_fighters;
+    }
+
+    if(xWings[i].w > app.canvas.w/3 && xWings[i].hasBeenHit){
+      xWings.splice(i,1);
+    }
+
+  }
+
+  // draw player
+  Player.draw();
+
+  // draw aim rack...
+  game.draw_cross_bar();
+
+}
+
+function addBullet(inX){
+  dots.push({
+
+    beginX : inX,  // Initial x-coordinate
+    beginY : Player.y,  // Initial y-coordinate
+    endX : 300 - Math.sin(Player.rotation * (Math.PI/180)) * 350,   // Final x-coordinate
+    endY : 500 - Math.cos(Player.rotation * (Math.PI/180)) * 250,   // Final y-coordinate
+    distX : this.endX - this.beginX,          // X-axis distance to move
+    distY : this.endY - this.beginY,          // Y-axis distance to move
+
+    w : app.defaults.dotWidth,
+    h : app.defaults.dotWidth,
+
+    x : 0,        // Current x-coordinate
+    y : 0,        // Current y-coordinate
+    step : 0.02,    // Size of each step along the path
+    pct : 0.0,      // Percentage traveled (0.0 to 1.0)
+
+    display : function () {
+
+
+      if(debugLine){
+        stroke(250);
+        line(this.beginX, this.beginY, this.endX, this.endY);
+      }
+      console.log(
+        "Rotation: " + Player.rotation,
+        "endX: " + floor(this.endX,2),
+        "endY: " + floor(this.endY,2),
+        "sin: " + Math.sin(Player.rotation * (Math.PI/180)),
+        "cos: " + Math.cos(Player.rotation * (Math.PI/180))
+      );
+
+      this.pct += this.step;
+      if (this.pct < 1.0) {
+        this.x = this.beginX + (this.pct * this.distX);
+        this.y = this.beginY + (this.pct * this.distY);
+      }
+      fill(12,208,2);
+      //ellipse(this.x, this.y, this.w, this.h);
+      rect(this.x, this.y, this.w, this.h);
+
+      this.distX = this.endX - this.beginX;
+      this.distY = this.endY - this.beginY;
+      this.w *= .95;
+      this.h *= .95;
+
+      // if there are ships in the ship array
+      if(xWings.length > 0){
+      // look to see if the x,y of this bullet is in each of the ships 2d area
+
+        for(var i = 0; i<xWings.length; i+=1){
+
+          hit = collidePointRect(this.x, this.y,xWings[i].x,xWings[i].y,xWings[i].w,xWings[i].h); //see if the mouse is in the rect
+
+          if(hit && !xWings[i].hasBeenHit && xWings[i].w > 25){
+            // console.log("hit",this.x, this.y,xWings[i].x, xWings[i].y, xWings[i].w, xWings[i].h);
+            xWings[i].hasBeenHit = true;
+            game.score += 1;
+            document.getElementById('score').innerHTML = game.score;
+          } else{
+
+          }
+        }
+
+      }
+
+    }
+  });
+}
+
+
+
+
+// key events
+document.body.addEventListener("keydown", function (e) {
+  // console.log(e.keyCode);
+    e.preventDefault()
+    keys[e.keyCode] = true;
+    return false;
+});
+document.body.addEventListener("keyup", function (e) {
+    // e.preventDefault()
+    keys[e.keyCode] = false;
+    return false;
+});
+
+function mousePressed() {
+  addBullet(mouseX);
+
+  return false;
+}
+
+  </script>
+
+  </body>
+</html>
