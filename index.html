@@ -1,16 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Rob's P5 Testing Playground...</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    body{
+      background-color:#333;
+    }
+    #content {
+    width: 600px ;
+    margin-left: auto ;
+    margin-right: auto ;
+    text-align: center ;
+  }
+  .app_details{
+    background-color:#999;
+  }
+  </style>
 </head>
 <body>
 
+<div id="content">
   <div id='myContainer'></div>
 
-  <h3>Score</h3>
-  <div id="score">0</div>
-  <h3>Passed Fighters</h3>
-  <div id="passed_fighters">0</div>
+  <div class="app_details">
+
+    <strong>Score</strong>
+  <span id="score">0</span>
+&nbsp;
+||
+&nbsp;
+  <strong>Passed Fighters</strong>
+  <span id="passed_fighters">0</span>
+
+<div class="directions">use arrow keys and spacebar</div>
+
+  </div>
+  
+
+</div>
 
   <script src="./js/p5.min.js"></script>
   <script src="./js/addons/p5.collision.js"></script>
